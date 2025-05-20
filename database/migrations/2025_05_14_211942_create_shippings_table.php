@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('shippings', function (Blueprint $table) {
             $table->id();
             $table->string('city_name');
+            //string si Zip
             $table->integer('zip_code');
             $table->string('address');
             $table->string('country');

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Events\OrderPlaced;
 use App\Models\Cart;
 use App\Models\Order;
@@ -12,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\OrderPlacedNotification;
+use Illuminate\Support\Facades\Notification;
 
 class OrderController extends Controller
 {
@@ -70,7 +70,6 @@ class OrderController extends Controller
 
     public function showOrder($id)
     {
-
         $user = Auth::user();
 
         $order = Order::with('orderItems.product', 'payment', 'shipping')->findOrFail($id);
@@ -90,7 +89,7 @@ class OrderController extends Controller
         //the order is cancelled and the details will be deleted
         $order->orderItems()->delete();
         $order->delete();
-
+        //redirect order
         return redirect()->route('user.dashboard')->with('success', 'Order cancelled successfully.');
     }
 
@@ -116,18 +115,25 @@ class OrderController extends Controller
 
         return redirect()->route('order.show', $order->id)->with('success', 'Shipping address updated.');
     }
-     public function placeOrder(Request $request)
+
+    public function placeOrder(Request $request)
     {
+        //Validate and Create Order
         $order = Order::create([
             'user_id' => Auth::id(),
             'total' => $request->input('total'),
         ]);
 
+        //Notify the User
+        $user = Auth::user();
+        if ($user) {
+            Notification::send($user, new OrderPlacedNotification($order));
+        }
+
         // Dispatch the event
         event(new OrderPlaced($order));
 
-        return redirect()->route('orders.show', $order->id)
-                        ->with('success', 'Order placed!');
+        return redirect()->route('order.show', $order->id)
+            ->with('success', 'Order placed successfully!');
     }
-
 }

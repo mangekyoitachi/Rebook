@@ -44,6 +44,7 @@ class Product extends Model
             ->withTimestamps();
     }
 
+    //eKIS KA
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);

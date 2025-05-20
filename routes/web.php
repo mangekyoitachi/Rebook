@@ -103,4 +103,5 @@ Route::middleware(['auth', 'seller'])->group(function () {
     });
 
     //Notification
+  
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->middleware('auth')->name('notifications.index');

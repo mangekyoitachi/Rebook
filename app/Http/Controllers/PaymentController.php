@@ -43,7 +43,7 @@ class PaymentController extends Controller
         ]);
 
         //conditions whether it will be cancelled or not(not required yet)
-
+        
         $user->notify(new OrderPlacedNotification($order));
 
         return redirect()->route('order.show', $order->id)

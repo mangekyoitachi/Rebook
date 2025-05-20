@@ -66,7 +66,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $search = $request->input('search');
-
+            //search change 
         $categories = Category::with(['products' => function ($query) use ($search) {
             if ($search) {
                 $query->where('name', 'like', '%' . $search . '%');

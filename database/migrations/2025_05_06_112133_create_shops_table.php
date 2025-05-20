@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('shops', function (Blueprint $table) {
             $table->id();
             $table->string('shop_name')->unique();
-            $table->text('description')->nullable();
-
             $table->foreignId('seller_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
