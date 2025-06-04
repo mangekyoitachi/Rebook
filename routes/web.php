@@ -16,14 +16,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShippingController;
 use App\Models\Shipping;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\GoogleController;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use inertia\Inertia;
 
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+// redirect to Google OAuth
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::middleware(['guest'])->group(function () {
     //login and register

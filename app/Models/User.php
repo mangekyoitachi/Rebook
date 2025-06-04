@@ -30,6 +30,10 @@ class User extends Authenticatable
         'role',
         'created_at',
         'updated_at',
+        // Additional fields for Google OAuth
+        'google_id',
+        'avatar',
+        'email_verified_at',
     ];
 
     /**
@@ -93,5 +97,22 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+
+    /**
+     * Check if user has a password (for OAuth users)
+     */
+    public function hasPassword(): bool
+    {
+        return !is_null($this->password);
+    }
+
+    /**
+     * Check if user is OAuth user
+     */
+    public function isOAuthUser(): bool
+    {
+        return !is_null($this->google_id);
     }
 }

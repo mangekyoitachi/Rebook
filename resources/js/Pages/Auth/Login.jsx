@@ -47,6 +47,15 @@ export default function Login() {
         setErrors(prev => ({ ...prev, [field]: error }))
         // If there's no error, return true, otherwise return false
         return !error
+    };
+
+    const handleGoogleLogin = (e) => {
+        // IMPORTANT: Prevent form submission
+        e.preventDefault()
+        e.stopPropagation()
+
+        // Use window.location for OAuth redirects, not AJAX
+        window.location.href = '/auth/google/'
     }
 
     const validate = () => {
@@ -143,6 +152,21 @@ export default function Login() {
                         Log In
                     </button>
 
+                    {/* fix dapat iba type value nito */}
+                    <button
+                        type="button"
+                        onClick={handleGoogleLogin}
+                        className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded flex justify-center items-center space-x-2 hover:bg-gray-100 w-full"
+                        >
+                        <img
+                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                            alt="Google"
+                            className="w-5 h-5"
+                        />
+                        <span className="text-sm font-medium">Login with Google</span>
+                    </button>
+
+
                     <Link
                         href="/register"
                         className="shadow-md border-2 border-blue-500 hover:bg-blue-500 hover:text-white rounded-md p-2 block text-center text-blue-500 font-bold"
@@ -150,7 +174,6 @@ export default function Login() {
                         Register here
                     </Link>
 
-                    <Link className="block font-bold text-center PT-4">Forgot Password?</Link>
                 </form>
             </div>
         </>

@@ -39,6 +39,4 @@ class AdminPolicy
     {
         return $user->isAdmin();
     }
-
-
 }

@@ -1,15 +1,22 @@
 import React from "react";
 
-export default function Dashboard({ setCurrentComponent }){
+export default function Dashboard({ setCurrentComponent, orders , overallRating }) {
+    console.log('orders', orders);
 
     const handleClick = (target) => {
         setCurrentComponent(target); // Calls parent directly
     }
 
+    const pendingOrders = orders.filter(order => order.status === 'pending').length;
+    const cancelledOrders = orders.filter(order => order.status === 'cancelled').length;
+    const completedOrders = orders.filter(order => order.status === 'completed').length;
+    const totalSales = orders
+    .filter(order => order.status === 'completed')
+    .reduce((sum, order) => sum + order.total, 0);
+    const totalOrders = orders.length;
+
     return(
         <>
-            {/* --- DASHBOARD --- */}
-            {/* grid based design */}
             <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mt-20">
 
                 {/* --- CONTAINER: TO DO LIST --- */}
@@ -17,16 +24,19 @@ export default function Dashboard({ setCurrentComponent }){
                     <h2 className="text-lg font-semibold mb-4">To Do List</h2>
                     <div className="flex justify-between text-center">
                         <div>
-                            <p className="text-xl font-bold">1</p>
+                            {/* Count all seller pending orders */}
+                            <p className="text-xl font-bold">{pendingOrders}</p>
                             <p className="text-sm text-gray-600">To-Process Shipment</p>
                         </div>
                         <div>
-                            <p className="text-xl font-bold">1</p>
-                            <p className="text-sm text-gray-600">Processed Shipment</p>
+                            {/* Count all seller cancelled orders */}
+                            <p className="text-xl font-bold">{cancelledOrders}</p>
+                            <p className="text-sm text-gray-600">Cancelled Orders</p>
                         </div>
                         <div>
-                            <p className="text-xl font-bold">1</p>
-                            <p className="text-sm text-gray-600">Order Delivered</p>
+                            {/* Count all completed orders */}
+                            <p className="text-xl font-bold">{completedOrders}</p>
+                            <p className="text-sm text-gray-600">Order Completed</p>
                         </div>
                     </div>
                 </div>
@@ -47,19 +57,19 @@ export default function Dashboard({ setCurrentComponent }){
                     <h2 className="text-lg font-semibold mb-4">Business Insights</h2>
                     <div className="flex justify-between text-center">
                         <div>
-                            <p className="text-xl font-bold">₱150</p>
+                            {/* Calculate the total price of completed orders */}
+                            <p className="text-xl font-bold">₱{totalSales}</p>
                             <p className="text-sm text-gray-600">Sales</p>
-                            <p className="text-xs text-gray-500">30.00%</p>
                         </div>
                         <div>
-                            <p className="text-xl font-bold">3</p>
-                            <p className="text-sm text-gray-600">Orders</p>
-                            <p className="text-xs text-gray-500">30.00%</p>
+                            {/* Count all the orders made by seller */}
+                            <p className="text-xl font-bold">{totalOrders}</p>
+                            <p className="text-sm text-gray-600">Orders made</p>
                         </div>
                         <div>
-                            <p className="text-xl font-bold">4.8</p>
+                            {/* Calculate the overall rating of seller */}
+                            <p className="text-xl font-bold">{overallRating}</p>
                             <p className="text-sm text-gray-600">Ratings</p>
-                            <p className="text-xs text-gray-500">35.00%</p>
                         </div>
                     </div>
                 </div>

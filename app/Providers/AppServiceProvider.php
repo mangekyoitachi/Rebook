@@ -29,6 +29,5 @@ class AppServiceProvider extends ServiceProvider
     {
         //Policies for products
         Gate::policy(ProductPolicy::class, Product::class);
-
     }
 }

@@ -22,7 +22,13 @@ export default function ProductList({ orders, orderItems, shippings, allUsers })
         return shippingIds[order.id] || null
     }, [shippings, shippingIds])
 
-    const handleStatusChange = useCallback((orderId, newStatus) => {
+    const handleStatusChange = useCallback((orderId, newStatus, currentStatus) => {
+        // Check if order is already cancelled or completed
+        if (currentStatus === 'cancelled' || currentStatus === 'completed') {
+            alert(`Order #${orderId} cannot be modified because it is already ${currentStatus}.`);
+            return;
+        }
+
         if (newStatus === 'cancelled') {
             if (!confirm(`Are you sure you want to cancel order #${orderId}?`)) {
                 return
@@ -32,7 +38,9 @@ export default function ProductList({ orders, orderItems, shippings, allUsers })
         const data = { status: newStatus }
 
         if (newStatus === 'completed') {
-            confirm(`Are you sure you want to mark order #${orderId} as completed?`)
+            if (!confirm(`Are you sure you want to mark order #${orderId} as completed?`)) {
+                return
+            }
         }
 
         router.put(`/order/${orderId}/status`, data, {
@@ -46,10 +54,11 @@ export default function ProductList({ orders, orderItems, shippings, allUsers })
     }, [orders, getRelevantShippingId])
 
     const renderOrderRow = useCallback((order) => {
-            const orderProducts = orderItems.filter(item => item.order_id === order.id)
+        const orderProducts = orderItems.filter(item => item.order_id === order.id)
         const firstProduct = orderProducts[0]
         const relevantShippingId = getRelevantShippingId(order)
         const orderedByUserName = getUserName(order.user_id);
+        const isOrderFinal = order.status === 'cancelled' || order.status === 'completed';
 
         return (
             <div key={order.id} className="bg-white rounded-xl shadow-md p-4 grid grid-cols-4 items-center text-sm text-gray-800">
@@ -82,8 +91,11 @@ export default function ProductList({ orders, orderItems, shippings, allUsers })
                 <div>
                     <select
                         value={order.status}
-                        onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => handleStatusChange(order.id, e.target.value, order.status)}
+                        disabled={isOrderFinal}
+                        className={`w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            isOrderFinal ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                        }`}
                     >
                         <option value="pending">Pending</option>
                         <option value="completed">Completed</option>

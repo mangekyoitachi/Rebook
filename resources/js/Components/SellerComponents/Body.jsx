@@ -16,6 +16,7 @@ function Body({
     products,
     shippings,
     allUsers,
+    overallRating,
 }) {
     const renderComponent = () => {
         if (user?.role !== "seller" || shop == null) return <Register user={user} />;
@@ -26,7 +27,7 @@ function Body({
             case "product":
                 return <Product products={products} categories={categories} shippings={shippings} />;
             default:
-                return <Dashboard setCurrentComponent={onChangeComponent} />;
+                return <Dashboard setCurrentComponent={onChangeComponent} orders={orders} overallRating={overallRating}/>;
         }
     };
 

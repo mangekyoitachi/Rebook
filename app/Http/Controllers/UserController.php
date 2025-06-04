@@ -107,10 +107,14 @@ class UserController extends Controller
 
     public function dashboard(Request $request)
     {
-        $categories = Category::all();
-
         // Get authenticated user
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+
+        $categories = Category::all();
 
         // Get all products with image URLs
         $products = Product::all();
@@ -124,8 +128,8 @@ class UserController extends Controller
         // Get top 10 products ordered by number of reviews (highest first), then by average review rating (highest first)
         $reviewedProducts = Review::selectRaw('product_id, AVG(rating) as avg_rating, COUNT(*) as review_count')
             ->groupBy('product_id')
-            ->orderByDesc('review_count')   // 1. Order by number of reviews
-            ->orderByDesc('avg_rating')     // 2. Then by average rating
+            ->orderByDesc('review_count')
+            ->orderByDesc('avg_rating')
             ->take(10)
             ->get()
             ->map(function ($item) {
@@ -169,7 +173,6 @@ class UserController extends Controller
     public function becomeSellerView()
     {
         $user = Auth::user();
-
         if (!$user) {
             return redirect()->route('login');
         }
@@ -213,6 +216,11 @@ class UserController extends Controller
         $shippings = Shipping::all();
         $allUsers = User::all();
 
+        // calculate overall rating for the seller
+        $overallRating = Review::where('user_id', $seller_id)
+            ->avg('rating');
+        $overallRating = round($overallRating * 2) / 2;
+
         return Inertia::render('Seller/Seller', [
             'user' => $user,
             'seller_id' => $seller_id,
@@ -223,6 +231,7 @@ class UserController extends Controller
             'orders' => $orders,
             'shippings' => $shippings,
             'allUsers' => $allUsers,
+            'overallRating' => $overallRating,
         ]);
     }
 

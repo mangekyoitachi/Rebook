@@ -15,6 +15,7 @@ export default function Seller() {
         products,
         shippings,
         allUsers,
+        overallRating,
     } = usePage().props
 
     const handleComponentChange = (component) => {
@@ -40,6 +41,7 @@ export default function Seller() {
                 products={products}
                 shippings={shippings}
                 allUsers={allUsers}
+                overallRating={overallRating}
             />
         </>
     )
