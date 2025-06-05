@@ -3,13 +3,13 @@ import logo from "../../../../public/Assets/logo.png";
 import menu from "../../../../public/Assets/Seller/menu.png"
 import { Link, useForm } from "@inertiajs/react";
 
-export default function Header(){
+function Header({ user, currentComponent , onChangeComponent }){
       const [open, setOpen] = useState(false); // set state of dropdown
+      const [component, setComponent] = useState(null);
       const dropdownRef = useRef(); // jsx view function
 
       // react hook synchronize a component with an external system
-      useEffect(() => {
-
+    useEffect(() => {
         // event is DOM html
         function handleClickOutside(event) {
           if (dropdownRef.current && !dropdownRef.current.contains(event.target)) { // check if outside the container
@@ -19,12 +19,15 @@ export default function Header(){
 
         document.addEventListener("mousedown", handleClickOutside); // DOM mouse event listener
         return () => document.removeEventListener("mousedown", handleClickOutside); // remove any events listeners
-
       }, []);
 
     // onclick function
     function onClickMenu(){
         setOpen(!open) // set value open
+    }
+
+    const handleClick = (name) => {
+        components(name)
     }
 
     return(
@@ -54,18 +57,28 @@ export default function Header(){
                     ref={dropdownRef}
                 >
 
-                    {/* --- BUTTON --- */}
-                    <button
-                        onClick={onClickMenu} // dropdown logic
-                        className="p-2"
-                    >
-                        {/* --- MENU --- */}
-                            <img
-                                src={menu}
-                                alt="menu"
-                                className="w-8"
-                            />
-                    </button>
+                    {user?.role === 'seller'? (
+                        <div>
+                            {/* --- BUTTON --- */}
+                            <button
+                                onClick={onClickMenu} // dropdown logic
+                                className="p-2"
+                            >
+                                {/* --- MENU --- */}
+                                    <img
+                                        src={menu}
+                                        alt="menu"
+                                        className="w-8"
+                                    />
+                            </button>
+                        </div>
+                    ) : (
+                        <div>
+                            {/* No burger Icon */}
+                        </div>
+                    )}
+
+
 
                     {/* --- OPEN --- */}
                     {open && ( // if true show the dropdown
@@ -73,7 +86,7 @@ export default function Header(){
 
                             {/* --- ORDER ICON --- */}
                             <button
-                                onClick={() => alert("Navigating to My Orders")}
+                                onClick={() => onChangeComponent('order')}
                                 className="flex flex-col items-center cursor-pointer focus:outline-none"
                             >
                                 <div className="bg-[#7a0d0d] text-white rounded-full p-3 text-xl">📋</div>
@@ -82,31 +95,32 @@ export default function Header(){
 
                             {/* --- PRODUCT ICON --- */}
                             <button
-                                onClick={() => alert("Navigating to My Products")}
+                                onClick={() => onChangeComponent('product')}
                                 className="flex flex-col items-center cursor-pointer focus:outline-none"
                             >
                                 <div className="bg-[#796008] text-white rounded-full p-3 text-xl">🛍️</div>
                                 <span className="text-xs mt-1 text-center">Products</span>
                             </button>
 
+                            {/* --- DASHBOARD ICON --- */}
+                            <button
+                                onClick={() => onChangeComponent('dashboard')}
+                                className="flex flex-col items-center cursor-pointer focus:outline-none"
+                            >
+                                <div className="bg-[#4a85cb] text-white rounded-full p-3 text-xl w-[48px] h-[48px]">↩</div>
+                                <span className="text-xs mt-1 text-center">Dashboard</span>
+                            </button>
+
                             {/* --- CUSTOMER ICON --- */}
                             <button
                                 className="flex flex-col items-center cursor-pointer focus:outline-none"
                             >
-                                <Link href="/dashboard" className="flex flex-col items-center">
+                                <Link href="/dashboard" method={"get"} className="flex flex-col items-center">
                                     <div className="bg-[#0d1f7a] text-white rounded-full p-3 text-xl w-[48px] h-[48px]">🛒</div>
                                     <span className="text-xs mt-1 text-center">Customer</span>
                                 </Link>
                             </button>
 
-                            {/* --- RETURN ICON --- */}
-                            <button
-                                onClick={() => alert("Logging out...")}
-                                className="flex flex-col items-center cursor-pointer focus:outline-none"
-                            >
-                                <div className="bg-gray-600 text-white rounded-full p-3 text-xl">↩️</div>
-                                <span className="text-xs mt-1 text-center">Return</span>
-                            </button>
                         </div>
                     )}
                 </div>
@@ -114,3 +128,5 @@ export default function Header(){
         </>
     )
 }
+
+export default Header

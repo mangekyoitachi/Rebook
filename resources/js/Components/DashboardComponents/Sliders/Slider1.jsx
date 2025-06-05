@@ -1,11 +1,10 @@
 import React from "react";
 
-export default function Slider1( data ){
-    console.log("Props data passed: ", data.data[0])
-    const Img1 = data.data[0]
-    const Img2 = data.data[1]
-    // const Img3 = data.data[2]
-    // const Img4 = data.data[3] 
+export default function Slider1({data}){
+    const Img1 = data[0]
+    const Img2 = data[1]
+    const Img3 = data[2]
+    const Img4 = data[3]
     return(
         <>
         {/* --- SLIDER 1 --- */}
@@ -14,11 +13,11 @@ export default function Slider1( data ){
             <div className="h-auto flex flex-auto flex-row justify-evenly items-start w-[60%]">
 
                 {/* --- IMG 1 --- */}
-                <div className="w-full h-104 overflow-hidden m-4 mt-8">
+                <div className="w-full h-104 overflow-hidden m-4 mt-8 rounded-xl shadow-md bg-white">
                     <img
                         src={Img1}
                         alt="technology"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover "
                     />
                 </div>
 
@@ -29,7 +28,7 @@ export default function Slider1( data ){
                 <div className="flex flex-col w-full h-auto">
 
                     {/* --- TOP --- */}
-                    <div className="flex flow-row justify-between h-auto mt-8">
+                    <div className="flex flow-row justify-between h-auto mt-8 rounded-xl shadow-md  bg-white">
                         {/* --- IMG 2 --- */}
                             <img
                                 src={Img2}
@@ -39,15 +38,15 @@ export default function Slider1( data ){
                     </div>
 
                     {/* --- BOT --- */}
-                    <div className="flex flex-col justify-between items-center gap-1 h-auto">
+                    <div className="flex flex-col justify-between items-center h-auto rounded-xl shadow-md  bg-white">
 
                         {/* --- TEXT 1 --- */}
                         <div className="bg-red-800 w-full text-white font-bold">
-                            <p className="text-5xl tracking-wider text-right pt-3 pb-2">Backpacks & Mini Bags</p>
+                            <p className="text-5xl tracking-normal text-right pb-2">Backpacks & Mini Bags</p>
                         </div>
 
                         {/* --- TEXT 2 --- */}
-                        <div className="flex justify-end w-full text-right">
+                        <div className="flex justify-end w-full text-right ">
                             <div className="flex flexcol text-4xl font-bold gap-x-5 ">Get up to
                                 <p className="text-7xl font-extrabold tracking-wider">10% OFF</p>
                             </div>

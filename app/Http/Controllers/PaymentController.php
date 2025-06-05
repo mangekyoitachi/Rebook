@@ -37,9 +37,16 @@ class PaymentController extends Controller
             'transaction_id' => $transactionId,
         ]);
 
+        //this will decrement the stocks of the product once the payment is successful
+
+        foreach ($order->orderItems as $orderItem) {
+            $product = $orderItem->product;
+            $product->decrement('stock', $orderItem->quantity);
+        }
+
         //update order status to completed
         $order->update([
-            'status' => 'completed',
+            'status' => 'completed', 
         ]);
 
         //conditions whether it will be cancelled or not(not required yet)
@@ -49,10 +56,12 @@ class PaymentController extends Controller
         return redirect()->route('order.show', $order->id)
         ->with([
             'success' => 'Payment successful. Transaction ID: ' . $transactionId,
-            'payment_id' => $payment->id, // optional if you need it
+            'payment_id' => $payment->id,
         ]);
     }
 
+
+    //if the user paid but wants to canel the order
     public function storeCancelledPayment(Request $request, $id)
     {
         $user = Auth::user();
@@ -77,6 +86,12 @@ class PaymentController extends Controller
             'status' => 'cancelled',
             'transaction_id' => $transactionId,
         ]);
+
+        //this will increment the stocks of the product once the payment is cancelled
+        foreach ($order->orderItems as $orderItem) {
+            $product = $orderItem->product;
+            $product->increment('stock', $orderItem->quantity);
+        }
 
         //update order status to cancelled
         $order->update([

@@ -42,32 +42,30 @@
                     <strong>{{ $review->user->name }}:</strong>(Rating: {{ $review->rating }}) {{ $review->created_at->format('Y-m-d') }}
                     <p>{{ $review->comment }}</p>
 
-                {{-- ongoing changes --}}
-                    {{-- @if(Auth::check() && Auth::id() === $review->user_id)
-                        <form action="{{ route('product.review.destroy', $review->id) }}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit">Delete</button>
-                        </form>
-                    {{-- @if(Auth::check() && Auth::id() === $review->user_id)
-                        <form action="{{ route('product.review.edit', $review->id) }}" method="POST">
+                    @if(Auth::check() && Auth::id() === $review->user_id)
+                        <button onlick="toggleEdit({{$review->id}})">Edit</button>
+
+                        <form action="{{route('product.review.edit', $review->id)}}" id="edit-form-{{$review->id}}" method="POST" style="display:none;">
                             @csrf
                             @method('PUT')
+                            <label for="comment">Edit Comment:</label>
+                            <textarea name="comment" id="comment" cols="30" rows="10" required>{{$review->comment}}</textarea>
 
-                            <label for="comment">Edit Comment: </label>
-                            <textarea name="comment" id="comment" required>{{ $review->comment }}</textarea>
                             <label for="rating">Edit Rating:</label>
-                            <select name="rating" id="rating">
+                            <select name="rating" id="rating" required>
                                 @for ($i = 1; $i <= 5; $i++)
                                     <option value="{{ $i }}" {{ $review->rating == $i ? 'selected' : '' }}>{{ $i }}</option>
                                 @endfor
                             </select>
+                            <button type="submit">Update Review</button>
                         </form>
-                    @else
-                        <p>{{ $review->comment }}</p>
-                        <p>Rating: {{ $review->rating }}</p>
-                        <p>Reviewed on: {{ $review->created_at->format('Y-m-d') }}</p>
-                    @endif --}}
+
+                        <form action="{{route('product.review.destroy', $review->id)}}" method="POST">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" onclick="return confirm('Are you sure you want to delete this review?')">Delete</button>
+                        </form>
+                    @endif
                 </li>
             @endforeach
         </ul>
@@ -87,4 +85,19 @@
 
         <button type="submit">Submit Review</button>
 </body>
+<script>
+    function toggleEdit(id)
+    {
+        const form = document.getElementById('edit-form-' + id);
+        const comment = document.getElementById('comment-' + id);
+
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            comment.style.display = 'none';
+        } else {
+            form.style.display = 'none';
+            comment.style.display = 'block';
+        }
+    }
+</script>
 </html>

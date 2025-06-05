@@ -10,6 +10,8 @@
     <h1>{{ $user->name }}'s Cart</h1>
     <h2>Items in Cart</h2>
 
+
+
     @if (!$cart || $cart->products->isEmpty())
         <p>Your cart is empty.</p>
     @else
@@ -41,11 +43,20 @@
         <h2>Manage Cart</h2>
         @foreach ($cart->products as $product)
             <!-- Update quantity form -->
+
+            {{-- error if quantity exceeds the stocks--}}
+            @if (session('error'))
+                <div style="color: red; margin-bottom: 10px;">
+                    {{ session('error') }}
+                </div>
+            @endif
             <form action="{{ route('cart.update', $product->id) }}" method="POST" style="margin-bottom: 10px;">
                 @csrf
                 @method('PUT')
                 <label>Update Quantity for {{ $product->name }}: </label>
+
                 <input type="number" name="quantity" value="{{ $product->pivot->quantity }}" min="1" required>
+
                 <button type="submit">Update</button>
             </form>
 
@@ -64,5 +75,8 @@
             <button type="submit" style="color: red;">Clear Entire Cart</button>
         </form>
     @endif
+
+
+
 </body>
 </html>

@@ -11,7 +11,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\OrderPlacedNotification;
-use Illuminate\Support\Facades\Notification;
 
 class OrderController extends Controller
 {
@@ -20,12 +19,12 @@ class OrderController extends Controller
         $request->validate([
             'selected_items' => 'required|array|min:1',
             'selected_items.*' => 'exists:products,id',
+            'shipping_address_id' => 'required|exists:shippings,id', // Ensure shipping address is provided
         ]);
 
         $user = Auth::user();
 
-        //get the user cart with products
-        $cart = Cart::where('user_id', $user->id)->with('products')->first();
+        $cart = Cart::where('user_id', $user->id)->with('products.seller')->first();
 
         if (!$cart || $cart->products->isEmpty()) {
             return response()->json([
@@ -33,39 +32,55 @@ class OrderController extends Controller
             ]);
         }
 
-        $selectedProductsIds = $request->input('selected_items');
-
-        $selectedProducts = $cart->products->whereIn('id', $selectedProductsIds);
+        $selectedProductIds = $request->input('selected_items');
+        $selectedProducts = $cart->products->whereIn('id', $selectedProductIds);
 
         if ($selectedProducts->isEmpty()) {
             return redirect()->back()->with('error', 'No products selected.');
         }
 
-        $total = $selectedProducts->sum(function ($product) {
-            return $product->price * $product->pivot->quantity;
-        });
+        // Group selected products by seller
+        $productsBySeller = $selectedProducts->groupBy('seller_id');
 
-        //create the order
+        foreach ($productsBySeller as $sellerId => $products) {
+            $total = $products->sum(function ($product) {
+                return $product->price * $product->pivot->quantity;
+            });
 
-        $order = Order::create([
-            'user_id' => $user->id,
-            'cart_id' => $cart->id,
-            'status' => 'pending',
-            'total' => $total
-        ]);
-
-        //create the order items
-
-        foreach ($selectedProducts as $product) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $product->id,
-                'quantity' => $product->pivot->quantity,
-                'price' => $product->price,
+            // Create a new order for each seller
+            $order = Order::create([
+                'user_id' => $user->id,
+                'cart_id' => $cart->id,
+                'seller_id' => $sellerId, // Associate the order with the seller
+                'status' => 'pending',
+                'total' => $total,
+                'shipping_address_id' => $request->shipping_address_id, // Apply the same shipping address to all orders for now
             ]);
+
+            // Eager load the user relationship immediately after creating the order
+            $order->load('user');
+
+            // Create order items for the products in this seller's group
+            foreach ($products as $product) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'quantity' => $product->pivot->quantity,
+                    'price' => $product->price,
+                ]);
+
+                // Remove the product from the cart
+                $cart->products()->detach($product->id);
+            }
+
+            // **Dispatch the OrderPlaced event for the current order**
+            Event::dispatch(new OrderPlaced($order));
         }
 
-        return redirect()->route('order.show', $order->id)->with('success', 'Order placed successfully.');
+        // Optionally, you can reload the cart to reflect the changes
+        $cart->load('products');
+
+        return redirect()->back()->with('success', 'Orders placed successfully and items removed from cart.');
     }
 
     public function showOrder($id)
@@ -107,33 +122,25 @@ class OrderController extends Controller
 
         // Get the shipping address directly from the database instead of using the relationship
         $shipping = Shipping::where('user_id', Auth::id())
-                           ->where('id', $request->shipping_id)
-                           ->firstOrFail();
+            ->where('id', $request->shipping_id)
+            ->firstOrFail();
 
         $order->shipping_id = $shipping->id;
         $order->save();
 
         return redirect()->route('order.show', $order->id)->with('success', 'Shipping address updated.');
     }
-
-    public function placeOrder(Request $request)
+     public function placeOrder(Request $request)
     {
-        //Validate and Create Order
         $order = Order::create([
             'user_id' => Auth::id(),
             'total' => $request->input('total'),
         ]);
 
-        //Notify the User
-        $user = Auth::user();
-        if ($user) {
-            Notification::send($user, new OrderPlacedNotification($order));
-        }
-
         // Dispatch the event
         event(new OrderPlaced($order));
 
-        return redirect()->route('order.show', $order->id)
-            ->with('success', 'Order placed successfully!');
+        return redirect()->route('orders.show', $order->id)
+                        ->with('success', 'Order placed!');
     }
 }

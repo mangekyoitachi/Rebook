@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Policy;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Log;
+use inertia\Inertia;
 
 class ProductController extends Controller
 {
@@ -64,7 +66,8 @@ class ProductController extends Controller
             'image' => $request->file('image') ? $request->file('image')->store('images/products', 'public') : null,
         ]);
 
-        return redirect()->route('shop.dashboard')->with('success', 'Product created successfully.');
+        // return redirect()->route('shop.dashboard')->with('success', 'Product created successfully.');
+        return redirect()->back()->with('success', 'Product created successfully.');
     }
 
     public function productEdit($id)
@@ -73,7 +76,11 @@ class ProductController extends Controller
         $this->authorize('update', $product);
         $categories = Category::all();
 
-        return view('seller.product.product_edit', compact('product', 'categories'));
+        // return view('seller.product.product_edit', compact('product', 'categories'));
+        return redirect()->back()
+            ->with('success', 'Product edited successfully.')
+            ->with('newProduct', $product);
+
     }
 
     public function productUpdate(Request $request, $id)
@@ -100,8 +107,12 @@ class ProductController extends Controller
             'image' => $request->file('image') ? $request->file('image')->store('images/products', 'public') : $product->image,
         ]);
 
-        return redirect()->route('shop.dashboard')->with('success', 'Product updated successfully.');
+        // return redirect()->route('shop.dashboard')->with('success', 'Product updated successfully.');
+        return redirect()->back()
+            ->with('success', 'Product updated successfully.')
+            ->with('updatedProduct', $product);
     }
+
 
     public function productDelete($id)
     {
@@ -111,7 +122,10 @@ class ProductController extends Controller
 
         $product->delete();
 
-        return redirect()->route('shop.dashboard')->with('success', 'Product deleted successfully.');
+        // return redirect()->route('shop.dashboard')->with('success', 'Product deleted successfully.');
+        return redirect()->back()
+            ->with('success', 'Product deleted successfully.')
+            ->with('deleteProduct', $product);
     }
 
     public function productShow($id)
@@ -120,4 +134,5 @@ class ProductController extends Controller
         $category = Category::all();
         return view('seller.product.product_show', compact('product', 'category'));
     }
+
 }

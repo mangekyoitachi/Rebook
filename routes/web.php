@@ -14,14 +14,16 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShippingController;
-
+use App\Models\Shipping;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\GoogleController;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
+use inertia\Inertia;
 
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+// redirect to Google OAuth
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::middleware(['guest'])->group(function () {
     //login and register
@@ -47,13 +49,20 @@ Route::middleware(['auth'])->group(function () {
     //product show and review
     Route::get('/product/{id}', [ReviewController::class, 'viewOneProduct'])->name('product.show');
 
+
     //product review
     Route::post('/product/{id}/review', [ReviewController::class, 'storeReview'])->name('product.review.store');
     Route::post('/product/{id}/review/edit', [ReviewController::class, 'editReview'])->name('product.review.edit');
+    Route::delete('/product/{id}/review/delete', [ReviewController::class, 'deleteReview'])->name('product.review.delete');
+
+
+    // Route::put('/product/{id}/review/edit', [ReviewController::class, 'editReview'])->name('product.review.edit');
+    // Route::delete('/product/{id}/review/delete', [ReviewController::class, 'deleteReview'])->name('product.review.destroy');
 
     //cart management
-    Route::post('/product/{id}/add-to-cart', [CartController::class, 'addToCart'])->name('product.add.to.cart');
     Route::get('/cart/{id}', [CartController::class, 'viewCart'])->name('cart.view');
+    Route::post('/product/{id}/add-to-cart', [CartController::class, 'addToCart'])->name('product.add.to.cart');
+
     Route::put('/cart/{product}/update', [CartController::class, 'updateCart'])->name('cart.update');
     Route::delete('/cart/{id}/remove', [CartController::class, 'removeFromCart'])->name('cart.remove');
     Route::delete('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');
@@ -64,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/order/{id}/cancel', [OrderController::class, 'cancelOrder'])->name('order.cancel');
     Route::post('order/{id}/shipping', [OrderController::class, 'storeShipping'])->name('order.shipping.store');
 
+    Route::put('/order/{id}/status', [OrderController::class, 'updateStatus']);
     //payment
     Route::post('/orders/{id}/pay', [PaymentController::class, 'storePayment'])->name('payment.store');
     Route::post('/orders/{id}/cancelled', [PaymentController::class, 'storeCancelledPayment'])->name('payment.cancelled');
@@ -71,16 +81,20 @@ Route::middleware(['auth'])->group(function () {
     //shipping address
     Route::get('/shipping/create', [ShippingController::class, 'shippingForm'])->name('shipping.form');
     Route::post('/shipping/post', [ShippingController::class, 'storeShipping'])->name('shipping.store');
+    Route::put('/shipping/{id}/update',[ShippingController::class, 'updateShipping']);
+    Route::delete('shipping/{id}', [ShippingController::class, 'deleteShipping']);
+
 
     //user profile
     Route::get('/profile', [ProfileController::class, 'showProfile'])->name('user.profile');
     Route::put('/profile/update', [ProfileController::class, 'updateProfile'])->name('user.profile.update');
+
 });
 
 Route::middleware(['auth', 'seller'])->group(function () {
     //initial stage on creating a shop
     Route::get('/create-shop', [ShopController::class, 'shopCreate'])->name('shop.create');
-    Route::post('/create-shop', [ShopController::class, 'shopStore'])->name('shop.store');
+    Route::post( '/create-shop', [ShopController::class, 'shopStore'])->name('shop.store');
 
     //shop overview of the seller
     Route::get('/shop/dashboard/', [ShopController::class, 'shopDashboard'])->name('shop.dashboard');
@@ -97,6 +111,27 @@ Route::middleware(['auth', 'seller'])->group(function () {
     Route::get('/shop/business-analytics', [ShopController::class, 'businessAnalytics'])->name('shop.analytics');
 });
 
+Route::middleware(['auth', 'is_admin'])->group(function () {
+    //admin dashboard
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+
+    //user management
+    Route::get('/admin/users', [UserController::class, 'userManagement'])->name('admin.users');
+    Route::put('/admin/users/{id}/update', [UserController::class, 'updateUser'])->name('admin.user.update');
+    Route::delete('/admin/users/{id}/delete', [UserController::class, 'deleteUser'])->name('admin.user.delete');
+
+    //product management
+    Route::get('/admin/products', [ProductController::class, 'productManagement'])->name('admin.products');
+    Route::put('/admin/products/{id}/update', [ProductController::class, 'updateProduct'])->name('admin.product.update');
+    Route::delete('/admin/products/{id}/delete', [ProductController::class, 'deleteProduct'])->name('admin.product.delete');
+
+    //category management
+    Route::get('/admin/categories', [CategoryController::class, 'categoryManagement'])->name('admin.categories');
+    Route::post('/admin/categories/create', [CategoryController::class, 'createCategory'])->name('admin.category.create');
+    Route::put('/admin/categories/{id}/update', [CategoryController::class, 'updateCategory'])->name('admin.category.update');
+    Route::delete('/admin/categories/{id}/delete', [CategoryController::class, 'deleteCategory'])->name('admin.category.delete');
+});
+
     //Task Scheduling
     Route::get('/check-sales-reminder', function () {
         return response()->json(['show' => Cache::get('show_sales_popup', false)]);
@@ -105,3 +140,17 @@ Route::middleware(['auth', 'seller'])->group(function () {
     //Notification
   
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->middleware('auth')->name('notifications.index');
+    //Notification
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->middleware('auth')->name('notifications.index');
+
+    Route::get('/images/{path}', [ReviewController::class, 'image']);
+    Route::get('/test', function () {
+        return response('Laravel is working!')->header('Content-Type', 'text/plain');
+    });
+
+     // react
+    Route::get('/', [UserController::class, 'test']);
+    Route::get('/cart-react', function() {
+        return inertia::render('Cart/Cart');
+    });
+

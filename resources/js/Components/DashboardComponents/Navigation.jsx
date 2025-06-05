@@ -1,82 +1,51 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
+import { useEffect, useState } from "react";
 
-// logic to retrieve specific product category
+// reviewedProducts should be an array of objects like:
 
-export default function Navigation(){
-    return(
+export default function Navigation({ reviewedProducts = [] }) {
+    const [products, setProducts] = useState(reviewedProducts);
+
+    useEffect(() => {
+        if (products.length !== reviewedProducts.length) {
+            setProducts(reviewedProducts);
+        }
+    }, [reviewedProducts]);
+
+    return (
         <>
             {/* --- NAVIGATION --- */}
-            <div className="flex flex-row justify-center flex-wrap gap-x-[3%] text-red-800 font-medium text-[18px]">
-
+            <div className="flex flex-row justify-center flex-wrap gap-x-[3%] text-red-800 font-medium text-[18px] shadow-md pb-4">
                 {/* --- Sale Items Link --- */}
-                <button
-                    onClick={() => setActiveComponent('SaleItems')}
-                    className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2"
-                >
-                    {/* return dashboard w/all product */}
+                <div className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2">
                     <Link
                         href={"/dashboard"}
                         className="inline"
                     >
                         Sale Items
                     </Link>
-                </button>
+                </div>
 
-                {/* --- Wireless Earbuds Link --- */}
-                <button
-                    onClick={() => setActiveComponent('WirelessEarbuds')}
-                    className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2"
-                >
-                    {/* retrive specific data */}
-                    Wireless Earbuds
-                </button>
-
-                {/* --- School Backpack Link --- */}
-                <button
-                    onClick={() => setActiveComponent('SchoolBackPacks')}
-                    className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2"
-                >
-                    {/* retrive specific data */}
-                    School Backpack
-                </button>
-
-                {/* --- Spiral Notebook Link --- */}
-                <button
-                    onClick={() => { setActiveComponent('SpiralNoteBook')}}
-                    className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2"
-                >
-                    {/* retrive specific data */}
-                    Spiral Notebook
-                </button>
-
-                {/* --- Gel Sanitizer Link --- */}
-                <button
-                    onClick={() => setActiveComponent('GelSanitizer')}
-                    className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2"
-                >
-                    {/* retrive specific data */}
-                    Gel Sanitizer
-                </button>
-
-                {/* --- Laptop Link --- */}
-                <button
-                    onClick={() => setActiveComponent('Laptop')}
-                    className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2"
-                >
-                    {/* retrive specific data */}
-                    Laptop
-                </button>
-
-                {/* --- Ballpoin Pen Link  --- */}
-                <button
-                    onClick={() => setActiveComponent('BallPointPen')}
-                    className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2"
-                >
-                    {/* retrive specific data */}
-                    Ballpoint Pen
-                </button>
+                {/* --- Dynamically Rendered Product Links --- */}
+                {reviewedProducts.map(product => (
+                    <div
+                        key={product.product.id}
+                        className="hover:bg-red-800 hover:text-white hover:rounded-2xl hover:px-2 px-2"
+                    >
+                        <Link
+                            href={`/product/${product.product.id}`}
+                            preserveScroll
+                            preserveState
+                            method="get"
+                            as="button"
+                            className="inline"
+                        >
+                            {product.product.name}
+                        </Link>
+                    </div>
+                ))}
             </div>
         </>
-    )
+    );
 }

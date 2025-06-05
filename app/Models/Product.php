@@ -49,4 +49,9 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'seller_id'); // Assuming 'seller_id' is the foreign key in your 'products' table referencing the 'users' table
+    }
 }

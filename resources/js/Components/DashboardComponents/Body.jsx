@@ -1,26 +1,64 @@
-import React, { useEffect } from "react";
-import Slider from "./Slider";
-import Category from "./Category";
-import Product from "./Product";
+import React, { useState, useEffect } from "react"
+import Slider from "./Slider"
+import Category from "./Category"
+import Product from "./Product"
 
-export default function Body(){
-    // Validate component
-    useEffect(() => {console.log("Rendering: Dashboard.jsx");}, []);
+function Body({user, categories, products, searchProduct, isSearching, productsRating }) {
+    // State to manage the selected category
+    const [selectedCategory, setSelectedCategory] = useState(null)
 
-    return(
-        <>
-            {/* --- BODY CONTAINER --- */}
-            <div className="mx-[10%]">
-                {/* --- SLIDER --- */}
-                <Slider />
+    // Function to handle category selection
+    const handleCategoryClick = (category) => {
+        setSelectedCategory(category)
+    }
 
-                {/* --- CATEGORY --- */}
-                <Category />
+    // Reset category selection when search becomes active
+    useEffect(() => {
+        if (isSearching) {
+            setSelectedCategory(null)
+        }
+    }, [isSearching])
 
-                {/* --- PRODUCT --- */}
-                <Product />
+    // Determine what to show based on search state and category selection
+    let showSliderAndCategories = true
+    let productTitle = "Discover"
+    let productList = products || []
 
-            </div>
-        </>
+    if (isSearching) {
+        // When searching, hide slider and categories, show search results
+        showSliderAndCategories = false
+        productTitle = products.length === 1 ? `Search Result (${products.length} item)` : `Search Results (${products.length} items)`
+        productList = products || []
+    } else if (selectedCategory) {
+        // When category is selected, hide slider and categories, show category products
+        showSliderAndCategories = false
+        productTitle = selectedCategory.name
+        productList = selectedCategory.products || []
+    }
+
+    return (
+        <div className="mx-[10%]">
+            {/* Conditional rendering of the slider and category components */}
+            {showSliderAndCategories && (
+                <>
+                    <Slider />
+                    <Category
+                        // Function to handle category selection
+                        onSendData={handleCategoryClick}
+                        categories={categories}
+                        products={products}
+                    />
+                </>
+            )}
+
+            <Product
+                // Title for the product section
+                title={productTitle}
+                products={productList}
+                productsRating={productsRating}
+            />
+        </div>
     )
 }
+
+export default Body

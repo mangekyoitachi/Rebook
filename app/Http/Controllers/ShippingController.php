@@ -31,18 +31,52 @@ class ShippingController extends Controller
 
         $shipping = Shipping::create([
             'user_id' => $user->id,
-            'order_id' => $order->id,
+            'order_id' => $order ? $order->id : null,   // allow null if no order yet
             'city_name' => $request->city_name,
             'zip_code' => $request->zip_code,
             'address' => $request->address,
             'country' => $request->country,
         ]);
 
-        return response()->json([
-            'message' => 'Shipping information saved successfully',
-            'shipping' => $shipping,
-        ], 201);
+
+        // return response()->json([
+        //     'message' => 'Shipping information saved successfully',
+        //     'shipping' => $shipping,
+        // ], 201);
+
+        return redirect()->back();
     }
 
+    public function updateShipping(Request $request, $id)
+    {
+        $user = Auth::user();
 
+        $request->validate([
+            'city_name' => 'required|string|max:255',
+            'zip_code' => 'required|string|max:10',
+            'address' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+        ]);
+
+        $shipping = Shipping::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+
+        $shipping->update([
+            'city_name' => $request->city_name,
+            'zip_code' => $request->zip_code,
+            'address' => $request->address,
+            'country' => $request->country,
+        ]);
+
+        return redirect()->back()->with('success', 'Shipping address updated successfully.');
+    }
+
+    public function deleteShipping(Request $request, $id)
+    {
+        $user = Auth::user();
+        $shipping = Shipping::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+
+        $shipping->delete();
+
+        return redirect()->back()->with('success', 'Shipping address deleted successfully.');
+    }
 }

@@ -13,6 +13,7 @@ class CategoryController extends Controller
     {
         $category = Category::findOrFail($id);
         $products = Product::where('category_id', $id)->get();
+
         return view('user.category.category_show', compact('category', 'products'));
     }
 }

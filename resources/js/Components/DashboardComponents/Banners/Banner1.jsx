@@ -4,7 +4,7 @@ export default function(){
     return(
         <>
             {/* --- BANNER --- */}
-            <div className="relative flex items-center justify-between bg-red-800 text-white px-[3%] py-4">
+            <div className="relative flex items-center justify-between bg-red-800 text-white px-[3%] py-4 rounded-xl shadow-md">
                 {/* --- TEXT --- */}
                 <div className="flex flex-row justify-between w-full">
                     <h1 className="text-6xl font-bold">Bag It All Sale!</h1>

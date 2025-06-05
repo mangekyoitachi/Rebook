@@ -1,167 +1,171 @@
-import  React, { useEffect, useState } from "react";
-import { Link, useForm } from "@inertiajs/react";
-import logo from "../../../../public/Assets/logo.png";
+import React, { useEffect, useState } from "react"
+import { Link, useForm } from "@inertiajs/react"
+import logo from "../../../../public/Assets/logo.png"
 
+export default function Register() {
 
+    // State to manage validation errors
+    const [errors, setErrors] = useState({})
 
-export default function Register(){
-    // Validate component
-    useEffect(() => {console.log("Rendering: Register.jsx");}, []);
-
-    // useForm hook initializes form state with default values
+    // Inertia's useForm hook to manage form state and submission
     const { data, setData, post, processing } = useForm({
-        user: 'exampleusername',            // Default username
-        email: 'test@example.com',         // Default email
-        password: '12345678',              // Default password
-        password_confirmation: '',         // Empty confirmation field
-    });
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+    })
 
-    // Local state to track validation errors
-    const [errors, setErrors] = useState({});
+    // Enhanced validation: validate on field change and on submit
+    useEffect(() => {
+        // Validate all fields when any field changes, but only after initial mount
+        if (
+            data.name !== '' ||
+            data.email !== '' ||
+            data.password !== '' ||
+            data.password_confirmation !== ''
+        ) {
+            validateAllFields()
+        }
+        // eslint-disable-next-line
+    }, [data])
 
-    // Validate form input fields
-    const validate = () => {
-        // Logging input data to the console for debugging
-        console.log('Validating input data');
-        console.log('user: ', data.user);
-        console.log('email: ', data.email);
-        console.log('password: ', data.password);
-        console.log('confirm password: ', data.password_confirmation);
+    // Validate all fields at once
+    const validateAllFields = () => {
+        const newErrors = {}
+        let isValid = true
 
-        const newErrors = {}; // Object to hold validation errors
-
-        // Validate user field
-        if (!data.user.trim()) {
-            newErrors.user = 'Name is required'; // If user is empty
+        // Name validation
+        if (!data.name.trim()) {
+            newErrors.name = 'Name is required'
+            isValid = false
         }
 
-        // Validate email field
+        // Email validation
         if (!data.email.trim()) {
-            newErrors.email = 'Email is required'; // If email is empty
+            newErrors.email = 'Email is required'
+            isValid = false
         } else if (!/\S+@\S+\.\S+/.test(data.email)) {
-            newErrors.email = 'Email is invalid'; // If email format is wrong
+            newErrors.email = 'Email is invalid'
+            isValid = false
         }
 
-        // Validate password field
+        // Password validation
         if (!data.password.trim()) {
-            newErrors.password = 'Password is required'; // If password is empty
+            newErrors.password = 'Password is required'
+            isValid = false
         } else if (data.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters'; // If password is too short
+            newErrors.password = 'Password must be at least 6 characters'
+            isValid = false
         }
 
-        // Validate confirmation password field
+        // Password confirmation validation
         if (!data.password_confirmation.trim()) {
-            newErrors.password_confirmation = 'Confirm your password'; // If confirm password is empty
-        } else if (data.password !== data.password_confirmation) {
-            newErrors.password_confirmation = 'Passwords do not match'; // If passwords don't match
+            newErrors.password_confirmation = 'Confirm your password'
+            isValid = false
+        } else if (data.password_confirmation !== data.password) {
+            newErrors.password_confirmation = 'Passwords do not match'
+            isValid = false
         }
 
-        // Set validation errors in state
-        setErrors(newErrors);
+        setErrors(newErrors)
+        return isValid
+    }
 
-        // Return true if no errors, otherwise false
-        return Object.keys(newErrors).length === 0;
-    };
+    // Validate a single field on change and always keep errors fresh
+    const validateField = (field, value) => {
+        let error = ''
+        switch (field) {
+            case 'name':
+                if (!value.trim()) error = 'Name is required'
+                break
+            case 'email':
+                if (!value.trim()) error = 'Email is required'
+                else if (!/\S+@\S+\.\S+/.test(value)) error = 'Email is invalid'
+                break
+            case 'password':
+                if (!value.trim()) error = 'Password is required'
+                else if (value.length < 6) error = 'Password must be at least 6 characters'
+                break
+            case 'password_confirmation':
+                if (!value.trim()) error = 'Confirm your password'
+                else if (value !== data.password) error = 'Passwords do not match'
+                break
+            default:
+                break
+        }
+        setErrors(prev => ({ ...prev, [field]: error }))
+    }
 
-    // Handle input change
+    // Always validate field on input change
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value } = e.target
+        setData(name, value)
+        validateField(name, value)
+    }
 
-        // Update form data using Inertia's setData
-        setData(name, value);
-
-        // Clear error message for the current input field
-        setErrors({ ...errors, [name]: '' });
-    };
-
-    // Handle form submission
     const submit = (e) => {
-        e.preventDefault(); // Prevent the browser from reloading the page
-
-        console.log("Form submitted");
-        console.log("Route: /register/post");
-        console.log("Data: ", data);
-
-        // Run validation before submitting
-        if (validate()) {
-            console.log('Form data validation success');
-
-            // If valid, send POST request using Inertia's post()
-            post("/register/post", {
+        e.preventDefault()
+        if (validateAllFields()) {
+            post("/register", {
                 onSuccess: () => {
-                    console.log("Submission success, redirected"); // Success callback
+                    console.log("Registration successful")
+                    // Optionally redirect or show a success message
                 },
                 onError: (errors) => {
-                    console.log("Backend Errors: ", errors); // Show errors from server
-                    console.log("Submission failed"); // Handle backend validation errors
-                    setErrors(errors); // Optionally, set them in your error state
+                    console.log("Registration failed", errors)
+                    setErrors(errors)
                 }
-            });
-        } else {
-            // Log failure and prevent form submission
-            console.log('Abort submission: Form data validation failed');
+            })
         }
     }
 
-    // Component View
-    return(
+    return (
         <>
-            {/* Page container with centered content */}
-            <div className="border flex flex-col justify-center items-center h-[100vh]">
-
-                {/* Logo image at the top of the form */}
+            <div className="border flex flex-col justify-center items-center h-screen">
                 <img
-                    src={logo}                            // Source of logo image
-                    alt="Re:Book"                         // Alt text for accessibility
-                    className="w-[15%] m-4"              // Styling: responsive width and margin
+                    src={logo}
+                    alt="Re:Book"
+                    className="w-[15%] m-4"
                 />
 
-                {/* Main form container */}
+                {/* inertia useform */}
                 <form
                     onSubmit={submit}
-                    noValidate                    // Handle form submit with your custom `submit` function
-                    className="flex flex-col w-[25%] p-6 pt-8 pb-8 border rounded-xl space-y-4 mb-40"
+                    noValidate
+                    className="bg-white shadow-xl flex flex-col w-[25%] p-6 pt-8 pb-8 rounded-xl space-y-4 mb-40"
                 >
-
-                    {/* --- EMAIL FIELD --- */}
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                            Email Address                 {/* Label for accessibility */}
+                            Email Address
                         </label>
                         <input
                             type="email"
                             id="email"
                             name="email"
-                            value={data.email}           // Controlled input using Inertia's useForm
-                            onChange={handleChange}      // Handle input changes
+                            value={data.email}
+                            onChange={handleChange}
                             className="mt-1 w-full px-4 py-2 border border-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        {/* Conditional error display */}
                         {errors.email && (
                             <div className="text-sm text-red-500">{errors.email}</div>
                         )}
                     </div>
-
-                    {/* --- USER FIELD --- */}
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                             Name
                         </label>
                         <input
-                            type="user"
-                            id="user"
-                            name="user"
-                            value={data.user}            // This should match your useForm key
+                            type="name"
+                            id="name"
+                            name="name"
+                            value={data.name}
                             onChange={handleChange}
                             className="mt-1 w-full px-4 py-2 border border-red-800 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        {/* NOTE: Key mismatch. This should be `errors.user` (not `errors.name`) */}
-                        {errors.user && (
-                            <div className="text-sm text-red-500">{errors.user}</div>
+                        {errors.name && (
+                            <div className="text-sm text-red-500">{errors.name}</div>
                         )}
                     </div>
-
-                    {/* --- PASSWORD FIELD --- */}
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                             Password
@@ -178,8 +182,6 @@ export default function Register(){
                             <div className="text-sm text-red-500">{errors.password}</div>
                         )}
                     </div>
-
-                    {/* --- CONFIRM PASSWORD FIELD --- */}
                     <div>
                         <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
                             Confirm Password
@@ -196,26 +198,21 @@ export default function Register(){
                             <div className="text-sm text-red-500">{errors.password_confirmation}</div>
                         )}
                     </div>
-
-                    {/* --- SUBMIT BUTTON --- */}
                     <button
                         type="submit"
-                        className="w-full bg-red-800 text-white py-2 rounded-md hover:bg-red-400 transition duration-300"
-                        disabled={processing}            // Disable when submitting
+                        className="shadow-md w-full bg-red-800 text-white py-2 rounded-md hover:bg-red-400 transition duration-300"
+                        disabled={processing}
                     >
-                        Sign In                           {/* Button label */}
+                        Sign In
                     </button>
-
-                    {/* --- BACK TO LOGIN LINK --- */}
                     <Link
                         href="/login"
-                        className="border-2 border-blue-500 hover:bg-blue-500 hover:text-white rounded-md p-2 block text-center text-blue-500 font-bold"
+                        className="shadow-md border-2 border-blue-500 hover:bg-blue-500 hover:text-white rounded-md p-2 block text-center text-blue-500 font-bold"
                     >
-                        Back to login                     {/* Navigation link */}
+                        Back to login
                     </Link>
                 </form>
             </div>
-
         </>
     )
 }

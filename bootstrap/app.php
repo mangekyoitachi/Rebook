@@ -1,11 +1,12 @@
 <?php
 
+use Illuminate\Foundation\Application;
+use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\SellerMiddleware;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Foundation\Application;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Http\Middleware\HandleInertiaRequests;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,10 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
         $middleware->alias([
-            'seller' => SellerMiddleware::class
+            'seller' => SellerMiddleware::class,
+            'is_admin' => AdminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
-   
+
