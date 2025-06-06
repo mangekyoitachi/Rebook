@@ -11,6 +11,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\OrderPlacedNotification;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Event;
 
 class OrderController extends Controller
 {
@@ -104,7 +106,7 @@ class OrderController extends Controller
         //the order is cancelled and the details will be deleted
         $order->orderItems()->delete();
         $order->delete();
-        //redirect order
+
         return redirect()->route('user.dashboard')->with('success', 'Order cancelled successfully.');
     }
 
@@ -130,17 +132,20 @@ class OrderController extends Controller
 
         return redirect()->route('order.show', $order->id)->with('success', 'Shipping address updated.');
     }
-     public function placeOrder(Request $request)
+
+    public function updateStatus(Request $request, $id)
     {
-        $order = Order::create([
-            'user_id' => Auth::id(),
-            'total' => $request->input('total'),
-        ]);
+        // ... validation ...
 
-        // Dispatch the event
-        event(new OrderPlaced($order));
+        $order = Order::findOrFail($id);
+        $order->status = $request->input('status');
 
-        return redirect()->route('orders.show', $order->id)
-                        ->with('success', 'Order placed!');
+        if ($request->input('status') === 'completed' && $request->has('shipping_id')) {
+            $order->shipping_id = $request->input('shipping_id');
+        }
+
+        $order->save();
+
+        return redirect()->back()->with('success', 'Order status updated successfully.');
     }
 }
